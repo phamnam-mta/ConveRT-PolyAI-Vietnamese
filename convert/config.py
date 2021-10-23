@@ -16,15 +16,15 @@ class ConveRTTrainConfig(NamedTuple):
     train_dataset_path: str = "data/train.json"
     test_dataset_path: str = "data/test.json"
 
-    model_save_dir: str = "logs/models/"
+    model_save_dir: str = "models/convert"
     log_dir: str = "logs"
     device: str = "cuda:0"
-    use_data_paraller: bool = False
+    use_data_paraller: bool = True
 
     is_reddit: bool = True
 
     train_batch_size: int = 64
-    test_batch_size: int = 256
+    test_batch_size: int = 128
 
     split_size: int = 8
     learning_rate: float = 2e-5

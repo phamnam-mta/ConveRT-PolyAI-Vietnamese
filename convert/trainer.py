@@ -88,4 +88,5 @@ class ConveRTTrainer:
         self.logger.log_eval_step(epoch_id, avg_loss, accuracy)
 
     def save_model(self, epoch_id: int):
-        self.model.to(CPU_DEVICE)
+        #self.model.to(CPU_DEVICE)
+        torch.save(self.model.state_dict(), self.train_config.model_save_dir)
