@@ -1,0 +1,66 @@
+version: 2.1
+
+executors:
+  convert-pytorch-executor:
+    working_directory: ~/ConveRT-pytorch
+    docker:
+      - image: circleci/python:3.7.5
+
+commands:
+  install-requirements:
+    description: Create virutalenv and install requriements
+    steps:
+      - checkout
+
+      - restore_cache:
+          key: deps-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}
+
+      - run:
+          name: create virtualenv and install requirements
+          command: |
+            virtualenv env
+            . env/bin/activate
+            pip install -r requirements.txt -r requirements-dev.txt
+
+      - save_cache:
+          key: deps-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}
+          paths:
+            - "env"
+
+jobs:
+  run_tests:
+    executor: convert-pytorch-executor
+    steps:
+      - install-requirements
+
+      - run:
+          name: run tests
+          command: |
+            . env/bin/activate
+            pytest --cov-branch --cov convert
+
+      - run:
+          name: upload coverage
+          command: |
+            . env/bin/activate
+            codecov
+
+  run_linting:
+    executor: convert-pytorch-executor
+    steps:
+      - install-requirements
+
+      - run:
+          name: run linting
+          command: |
+            . env/bin/activate
+            black --check convert tests train.py
+            flake8 convert tests train.py
+            isort -rc -c convert tests train.py
+
+workflows:
+  version: 2
+  convert-pytorch-workflow:
+    jobs:
+      - run_tests
+      - run_linting

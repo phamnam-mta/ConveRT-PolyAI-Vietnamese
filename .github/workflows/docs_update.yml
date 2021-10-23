@@ -1,0 +1,17 @@
+name: Docs Update Workflow
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repository Dispatch
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.REPO_GITHUB_KEY }}
+          repository: codertimo/codertimo.github.io
+          event-type: update-convert-docs
