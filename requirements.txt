@@ -3,3 +3,4 @@ tqdm
 sklearn
 tensorboard
 sentencepiece
+bpemb

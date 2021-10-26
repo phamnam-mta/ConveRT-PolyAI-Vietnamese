@@ -2,7 +2,7 @@ from typing import NamedTuple
 
 
 class ConveRTModelConfig(NamedTuple):
-    num_embed_hidden: int = 512
+    num_embed_hidden: int = 300
     feed_forward1_hidden: int = 2048
     feed_forward2_hidden: int = 1024
     num_attention_project: int = 64
@@ -12,6 +12,7 @@ class ConveRTModelConfig(NamedTuple):
 
 
 class ConveRTTrainConfig(NamedTuple):
+    data_dir: str = "data"
     sp_model_path: str = "data/vi.wiki.bpe.vs10000.model"
     train_dataset_path: str = "data/train.json"
     test_dataset_path: str = "data/test.json"
@@ -22,6 +23,7 @@ class ConveRTTrainConfig(NamedTuple):
     use_data_paraller: bool = False
 
     is_reddit: bool = True
+    is_pretrain_embed: bool = True
 
     train_batch_size: int = 64
     test_batch_size: int = 128

@@ -222,7 +222,7 @@ class ConveRTEmbedding(nn.Module):
         self.m1_positional_embed = nn.Embedding(47, config.num_embed_hidden)
         self.m2_positional_embed = nn.Embedding(11, config.num_embed_hidden)
 
-    def forward(self, input_ids: torch.Tensor, position_ids: torch.Tensor) -> torch.Tensor:
+    def forward(self, input_ids: torch.Tensor, position_ids: torch.Tensor, pretrain_embed: torch.Tensor = None) -> torch.Tensor:
         """embedding sum of positional and sub-word representation
 
         m1_positional_embed is calculated with m1_embed_weight(mod(position_ids, 47))
@@ -235,7 +235,10 @@ class ConveRTEmbedding(nn.Module):
         :return: return embedding sum (position{m1, m2} + sub-word)
         :rtype: torch.Tensor
         """
-        subword_embed = self.subword_embed.forward(input_ids)
+        if pretrain_embed != None:
+            subword_embed = self.subword_embed.forward(input_ids)
+        else:
+            subword_embed = pretrain_embed
         m1_positional_embed = self.m1_positional_embed.forward(torch.fmod(position_ids, 47))
         m2_positional_embed = self.m2_positional_embed.forward(torch.fmod(position_ids, 11))
         embedding = subword_embed + m1_positional_embed + m2_positional_embed
@@ -331,7 +334,7 @@ class ConveRTSharedEncoder(nn.Module):
         """
 
         # calculate transformer input embedding
-        embed = self.embedding.forward(encoder_input.input_ids, encoder_input.position_ids)
+        embed = self.embedding.forward(encoder_input.input_ids, encoder_input.position_ids, encoder_input.pretrain_embed)
 
         # run over the transformer encoder layers
         encoder_layer_output = embed

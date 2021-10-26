@@ -21,6 +21,7 @@ from convert.dataset import (
 from convert.logger import TrainLogger
 from convert.model import ConveRTDualEncoder
 from convert.trainer import ConveRTTrainer
+from bpemb import BPEmb
 
 
 def get_train_config() -> ConveRTTrainConfig:
@@ -70,8 +71,11 @@ def main() -> int:
     train_instances = instance_load_fn(train_config.train_dataset_path)
     test_instances = instance_load_fn(train_config.test_dataset_path)
 
-    train_dataset = ConveRTDataset(train_instances, tokenizer)
-    test_dataset = ConveRTDataset(test_instances, tokenizer)
+    pretrain_embed=None
+    if train_config.is_pretrain_embed:
+        pretrain_embed = BPEmb(lang="vi", vs=model_config.vocab_size, dim=model_config.num_embed_hidden, cache_dir=train_config.data_dir)
+    train_dataset = ConveRTDataset(train_instances, tokenizer, pretrain_embed)
+    test_dataset = ConveRTDataset(test_instances, tokenizer, pretrain_embed)
     train_dataloader = DataLoader(
         train_dataset, train_config.train_batch_size, collate_fn=convert_collate_fn, drop_last=True
     )

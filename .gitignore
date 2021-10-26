@@ -137,5 +137,6 @@ logs/
 runs
 data/*.json
 data/v1
+data/vi
 models/
 data_processing/*.json

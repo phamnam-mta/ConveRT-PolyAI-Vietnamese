@@ -6,8 +6,9 @@ import torch
 from sentencepiece import SentencePieceProcessor
 from torch.nn.functional import pad
 from torch.utils.data import Dataset
+from bpemb import BPEmb
 
-INPUT_ATTRIBUTES = ["input_ids", "attention_mask", "position_ids", "input_lengths"]
+INPUT_ATTRIBUTES = ["input_ids", "attention_mask", "position_ids", "input_lengths", "pretrain_embed"]
 
 
 class DatasetInstance(NamedTuple):
@@ -21,11 +22,13 @@ class EncoderInputFeature:
     attention_mask: torch.Tensor
     position_ids: torch.Tensor
     input_lengths: torch.Tensor
+    pretrain_embed: torch.Tensor
 
     def pad_sequence(self, seq_len: int):
         self.input_ids = pad(self.input_ids, [0, seq_len - self.input_ids.size(0)], "constant", 0)
         self.attention_mask = pad(self.attention_mask, [0, seq_len - self.attention_mask.size(0)], "constant", 0)
         self.position_ids = pad(self.position_ids, [0, seq_len - self.position_ids.size(0)], "constant", 0)
+        self.pretrain_embed = pad(self.pretrain_embed, [0,0,0, seq_len - self.pretrain_embed.size(0)], "constant", 0)
 
     def to(self, device: torch.device) -> "EncoderInputFeature":
         return EncoderInputFeature(
@@ -33,6 +36,7 @@ class EncoderInputFeature:
             attention_mask=self.attention_mask.to(device),
             position_ids=self.position_ids.to(device),
             input_lengths=self.input_lengths.to(device),
+            pretrain_embed=self.pretrain_embed.to(device),
         )
 
 
@@ -46,10 +50,11 @@ class ContextReplyFeaturePair:
 
 
 class ConveRTDataset(Dataset):
-    def __init__(self, instances: List[DatasetInstance], sp_processor: SentencePieceProcessor):
+    def __init__(self, instances: List[DatasetInstance], sp_processor: SentencePieceProcessor, pretrain_embed: BPEmb=None):
         super().__init__()
         self.instances: List[DatasetInstance] = instances
         self.sp_processor: SentencePieceProcessor = sp_processor
+        self.pretrain_embed: BPEmb = pretrain_embed
 
     def __len__(self) -> int:
         return len(self.instances)
@@ -62,7 +67,12 @@ class ConveRTDataset(Dataset):
         return ContextReplyFeaturePair(context=context_input, reply=reply_input)
 
     def _convert_instance_to_feature(self, input_str: str) -> EncoderInputFeature:
-        input_ids = self.sp_processor.EncodeAsIds(input_str)
+        if self.pretrain_embed:
+            input_ids = self.pretrain_embed.encode_ids(input_str)
+            pretrain_embed = self.pretrain_embed.embed(input_str)
+        else:
+            input_ids = self.sp_processor.EncodeAsIds(input_str)
+            pretrain_embed = None
         attention_mask = [1 for _ in range(len(input_ids))]
         position_ids = [i for i in range(len(input_ids))]
 
@@ -71,6 +81,7 @@ class ConveRTDataset(Dataset):
             attention_mask=torch.tensor(attention_mask),
             position_ids=torch.tensor(position_ids),
             input_lengths=torch.tensor(len(input_ids)),
+            pretrain_embed = torch.from_numpy(pretrain_embed) if self.pretrain_embed else None
         )
 
 
