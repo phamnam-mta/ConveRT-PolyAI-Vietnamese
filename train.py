@@ -89,6 +89,9 @@ def main() -> int:
         model = nn.DataParallel(model)
         criterion = nn.DataParallel(criterion)
 
+    # model.load_state_dict(torch.load(train_config.model_save_dir))
+    # model.train()
+
     trainer = ConveRTTrainer(
         model=model,
         criterion=criterion,

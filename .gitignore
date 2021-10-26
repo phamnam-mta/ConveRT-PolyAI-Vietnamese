@@ -135,5 +135,7 @@ data/test-00999-of-01000.json
 
 logs/
 runs
-data/train.json
-data/test.json
+data/*.json
+data/v1
+models/
+data_processing/*.json

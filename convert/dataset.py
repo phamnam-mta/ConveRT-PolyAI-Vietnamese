@@ -107,10 +107,7 @@ def load_instances_from_reddit_dataset(dataset_path: str) -> List[DatasetInstanc
             thread_name = d.get("thread_name")
             quotes = d.get("quotes")
             replies = d.get("replies")
-            if quotes:
-                instance = DatasetInstance(context=quotes, response=replies)
-            else:
-                instance = DatasetInstance(context=[thread_name], response=replies)
+            instance = DatasetInstance(context=quotes, response=replies)
             instances.append(instance)
     return instances
 
